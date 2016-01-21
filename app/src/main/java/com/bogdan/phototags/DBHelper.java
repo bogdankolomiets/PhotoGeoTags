@@ -17,6 +17,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String COLUMN_LAT = "latitude";
     public static final String COLUMN_LNG = "longitude";
     public static final String COLUMN_IMAGE_URL = "image";
+    public static final String COLUMN_DATE = "date";
 
 
     public DBHelper(Context context) {
@@ -35,7 +36,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table " + DATABASE_TABLE + " ( " +
                 "_id integer primary key autoincrement , " + COLUMN_LAT + " double , " + COLUMN_LNG
-                + " double , " + COLUMN_IMAGE_URL + " text " + " ) ");
+                + " double , " + COLUMN_IMAGE_URL + " text , " + COLUMN_DATE + " text " + " ) ");
     }
 
     @Override

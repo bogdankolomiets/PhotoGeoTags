@@ -2,6 +2,7 @@ package com.bogdan.phototags.activities;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -20,23 +21,31 @@ import android.support.v7.app.AppCompatActivity;
 import android.telephony.SignalStrength;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.support.v7.widget.Toolbar;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.bogdan.phototags.DBHelper;
 import com.bogdan.phototags.GPSListener;
 import com.example.bogdan.phototags.R;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
 
 /**
  * Created by bogdan on 18.01.2016.
@@ -48,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FloatingActionButton btnAddPhoto;
     public static String latitude;
     public static String longitude;
+    private ArrayList<Marker> markers = new ArrayList<>();
+    private CameraUpdate cameraUpdate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,15 +72,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btnAddPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addPhotoTagging();
+                if(latitude == null) {
+                    System.out.println("ASD" + latitude);
+                    Toast.makeText(getApplicationContext(), "Wait", Toast.LENGTH_SHORT).show();
+                } else
+                    addPhotoTagging();
             }
         });
+
     }
 
     private void addMarker(GoogleMap googleMap, double latitude, double longitude, String photoUrl) {
         if (googleMap != null) {
-            View marker = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.photo_marker, null);
-            ImageView photoInMarker = (ImageView) marker.findViewById(R.id.photoInMarker);
+            View markerPhoto = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.photo_marker, null);
+            ImageView photoInMarker = (ImageView) markerPhoto.findViewById(R.id.photoInMarker);
             if (photoUrl.substring(0, 9).equals("/storage/")) {
                 photoInMarker.setImageBitmap(BitmapFactory.decodeFile(photoUrl));
             } else {
@@ -77,10 +93,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .load(photoUrl)
                         .into(photoInMarker);
             }
-            googleMap.addMarker(new MarkerOptions()
+
+            markers.add(googleMap.addMarker(new MarkerOptions()
                             .position(new LatLng(latitude, longitude))
-                            .icon(BitmapDescriptorFactory.fromBitmap(createDrawablefromView(this, marker)))
+                            .icon(BitmapDescriptorFactory.fromBitmap(createDrawablefromView(this, markerPhoto))))
             );
+            System.out.println("MARKEEEESS" + markers);
+
         }
     }
 
@@ -92,20 +111,59 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onMarkerClick(Marker marker) {
                 marker.remove();
+
                 return false;
             }
         });
+        if (!markers.isEmpty())
+            setMapZoom(googleMap, markers);
     }
 
     private void initToolbar() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Photo Tagging");
+
         setSupportActionBar(toolbar);
+
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.day_histrory_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.menuDayHistory) {
+            Intent intent = new Intent(getApplicationContext(), DayHistoryActivity.class);
+            startActivity(intent);
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void addPhotoTagging() {
         Intent intent = new Intent(getApplicationContext(), AddPhotoTaggingActivity.class);
         startActivity(intent);
+    }
+
+    private void setMapZoom(final GoogleMap googleMap, ArrayList<Marker> markers) {
+        System.out.println(markers);
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (Marker marker : markers) {
+            builder.include(marker.getPosition());
+        }
+        final LatLngBounds bounds = builder.build();
+
+        final int padding = 50;
+        cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+        googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                googleMap.animateCamera(cameraUpdate);
+            }
+        });
     }
 
     private void addPhotoTagToMap() {
@@ -117,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             int columnIndexLongitude = cursor.getColumnIndex(DBHelper.COLUMN_LNG);
             int columnIndexPhoto = cursor.getColumnIndex(DBHelper.COLUMN_IMAGE_URL);
             do {
+                System.out.println(cursor.getString(columnIndexLongitude));
                 double latitude = cursor.getDouble(columnnIndexLatitude);
                 double longitude = cursor.getDouble(columnIndexLongitude);
                 String photoUrl = cursor.getString(columnIndexPhoto);

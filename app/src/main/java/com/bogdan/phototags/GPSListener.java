@@ -1,12 +1,15 @@
 package com.bogdan.phototags;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 
 import com.bogdan.phototags.activities.MainActivity;
+import com.example.bogdan.phototags.R;
 
 /**
  * Created by bogdan on 18.01.2016.

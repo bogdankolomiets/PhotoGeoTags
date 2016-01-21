@@ -28,6 +28,8 @@ import com.example.bogdan.phototags.R;
 import com.squareup.picasso.Picasso;
 
 import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -76,6 +78,7 @@ public class AddPhotoFragment extends Fragment {
                 contentValues.put(DBHelper.COLUMN_LAT, MainActivity.latitude);
                 contentValues.put(DBHelper.COLUMN_LNG, MainActivity.longitude);
                 contentValues.put(DBHelper.COLUMN_IMAGE_URL, imagePath);
+                contentValues.put(DBHelper.COLUMN_DATE, getData());
                 long ID = db.insert(DBHelper.DATABASE_TABLE, null, contentValues);
                 Log.d("INSRETTTTTTTTTT", "row inserted, ID = " + ID);
                 Intent intent = new Intent(getContext(), MainActivity.class);
@@ -121,14 +124,11 @@ public class AddPhotoFragment extends Fragment {
         imagePath = Url;
     }
 
-    private class PhotoTagsTask extends AsyncTask<ContentValues, Void, Void> {
-
-        @Override
-        protected Void doInBackground(ContentValues... params) {
-
-            return null;
-        }
+    private String getData() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        return dateFormat.format(new Date());
     }
+
 
 
 }

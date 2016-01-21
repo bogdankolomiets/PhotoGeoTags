@@ -26,6 +26,9 @@
         <activity android:name="com.bogdan.phototags.activities.AddPhotoTaggingActivity"
             android:configChanges="orientation"
             android:screenOrientation="portrait"/>
+        <activity android:name="com.bogdan.phototags.activities.DayHistoryActivity"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"/>
 
         <meta-data
             android:name="com.google.android.gms.version"
